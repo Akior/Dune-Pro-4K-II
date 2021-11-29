@@ -1,0 +1,26 @@
+#Обычно для некоторых процессов дебиана требуется больше памяти чем есть изначально, можно увеличить swap
+#Basically some process of debian need more ram than avaliable, so we can add more swap
+
+#Желательно выбрать флешку а не внутреннюю память dune
+#Better choose external flash and not internal
+
+#Текущий скрипт для внутренней память
+#Current script for internal flash
+
+#Сделан 1.5г
+#1.5g swap file
+
+cd /opt
+dd if=/dev/zero of=swap bs=1024 count=1524288
+mkswap swap
+chmod 0600 swap
+swapon swap
+
+#автозапуск
+#autostart
+
+cat > /opt/etc/init.d/S99swap << 'EOF'
+#!/bin/sh
+swapon /opt/swap &
+exit 0
+EOF
