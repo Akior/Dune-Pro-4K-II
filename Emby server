@@ -106,6 +106,8 @@ apt install ffmpeg -y
 cp /usr/bin/ffmpeg /home/emby/opt/emby-server/bin/ffmpeg
 cp /usr/bin/ffprobe /home/emby/opt/emby-server/bin/ffprobe
 
+/etc/init.d/emby-server start
+
 #аппаратное кодирование работать не будет
 #HW transcode doens't work
 
