@@ -1,0 +1,82 @@
+#Перед началом надо сделать доступ по telnet и root
+#Before start you must get telnet and root apps
+#Root  http://dune-hd.com/support/misc/dune_service_android_su_install.dsf
+#Telnet http://files.dune-hd.com/sdk/misc/dune_service_android_telnetd.dsf
+
+su
+cd /data/media/0
+mkdir entware
+/system/bin/mount -o rw,remount /
+mkdir /opt
+mount -o bind /data/media/0/entware /opt
+wget -O - http://bin.entware.net/armv7sf-k3.2/installer/alternative.sh | sh
+unset LD_LIBRARY_PATH
+unset LD_PRELOAD
+/opt/bin/opkg update
+/opt/bin/opkg install wget-ssl
+/system/bin/mount -o rw,remount /
+echo "nameserver 8.8.8.8" > /etc/resolv.conf                                                                                                                                         
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf                                                                                                                                        
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf                                                                                                                                        
+/system/bin/mount -o rw,remount /
+
+cat > /system/xbin/post-boot << 'EOF'
+#!/system/bin/sh
+MEDIA_PATH="/data/media/0"
+mkdir $MEDIA_PATH/entware
+cd $MEDIA_PATH/entware
+/system/bin/mount -o rw,remount /
+/system/bin/mkdir /opt
+/system/bin/mkdir /bin
+ln -s /system/bin/sh /bin/sh
+/system/bin/mount -o ro,remount /
+/system/bin/mount -o bind $MEDIA_PATH/entware /opt
+/system/bin/mount -o rw,remount /system
+ln -s /opt/etc/resolv.conf /system/etc/resolv.conf
+/system/bin/mount -o ro,remount /system
+/opt/etc/init.d/rc.unslung start
+EOF
+
+chmod 777 /system/xbin/post-boot
+
+/system/bin/mount -o ro,remount /
+/system/bin/mount -o rw,remount /firmware
+
+#fix for /system/xbin/post-boot start
+
+cat > /firmware/scripts/start_telnetd.sh << 'EOF'
+#!/bin/sh
+/system/xbin/post-boot &
+/bin/telnetd -l /system/bin/sh
+EOF
+/system/bin/mount -o ro,remount /firmware
+/system/bin/mount -o rw,remount /
+
+#fix for PATH
+
+cat > /etc/mkshrc << 'EOF'
+# Copyright (c) 2010, 2012, 2013, 2014
+#       Thorsten Glaser <tg@mirbsd.org>
+# This file is provided under the same terms as mksh.
+#-
+# Minimal /system/etc/mkshrc for Android
+#
+# Support: https://launchpad.net/mksh
+export PATH="$PATH:/opt/bin:/opt/sbin"
+export TERMINFO=/opt/share/terminfo
+export TERM=xterm
+export TMP=/opt/tmp
+export TEMP=/opt/tmp
+unset LD_PRELOAD
+unset LD_LIBRARY_PATH
+alias mc="mc -c"
+if (( USER_ID )); then PS1='$'; else PS1='#'; fi
+PS4='[$EPOCHREALTIME] '; PS1='${|
+        local e=$?
+        (( e )) && REPLY+="$e|"
+        return $e
+}$HOSTNAME:${PWD:-?} '"$PS1 "
+EOF
+
+/system/bin/mount -o ro,remount /
+/opt/etc/init.d/rc.unslung restart
