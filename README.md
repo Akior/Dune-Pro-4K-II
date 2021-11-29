@@ -1,7 +1,7 @@
 # Dune RTD1619
 Debian | Emby \ Plex Servers
 
-Прежде чем работать с этим надо установить entware
+Прежде чем работать с этим надо установить entware<br>
 Before start you must install entware
 
 Plex требует меньше пакетов, изначально уже готов к работе на дюне, я бы выбрал его
