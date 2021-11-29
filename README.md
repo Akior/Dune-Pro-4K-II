@@ -1,4 +1,4 @@
-# Dune-Pro-4K-II
+# Dune RTD1619
 Debian | Emby \ Plex Servers
 
 Plex требует меньше пакетов, изначально уже готов к работе на дюне, я бы выбрал его
