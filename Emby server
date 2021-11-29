@@ -1,0 +1,115 @@
+#Дебиан уже должен быть установлен
+#Debian buster must be installed
+
+debian enter
+
+#Сначала надо права на сеть
+#Need to add inet right to debian chroot
+
+addgroup --gid 3003 android_inet
+usermod -g android_inet _apt
+
+#обновим репозитории и установим пару пакетов
+#update repos and install some packets
+apt update
+apt install curl wget -y
+
+#скачаем и установим emby в домашнюю директорию
+#download and install emby in home dir
+cd /home
+wget https://github.com/MediaBrowser/Emby.Releases/releases/download/4.7.0.18/emby-server-deb_4.7.0.18_armhf.deb
+dpkg-deb --extract emby-server-deb_4.7.0.18_armhf.deb /home/emby
+
+#Эмби закостылен смотреть в /opt, так что поможем ему
+#Help emby find his binary at /opt
+ln -s /home/emby/opt/emby-server/ /opt/emby-server
+
+#создадим файл для запуска emby
+#create init file for start\stop
+
+cat > /etc/init.d/emby-server << 'EOF'
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          embyserver
+# Required-Start:    $remote_fs $local_fs $all $syslog $networking
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Emby Server
+# Description:       Emby for Linux,
+#                    More information at http://www.plexapp.com
+# Author:            Randomaizer
+# Version:           1.00
+### END INIT INFO
+EnvironmentFile=/etc/emby-server.conf
+WorkingDirectory=/opt/emby-server
+EmbyUser="root"
+User=root
+
+Running=$(ps -ef | grep 'EmbyServer'| grep -v grep | wc -l)
+
+case "$1" in
+  start)
+   su -m "$EmbyUser" -s /bin/sh -c "exec /opt/emby-server/bin/emby-server &" >/dev/null 2>&1
+    sleep 3
+    ;;
+  stop)
+    if [ $Running -eq 0 ]; then
+      echo "Emby Server is not running."
+      exit 0
+    fi
+    echo "Shutting down Emby Server: "
+
+    # Ask nicely
+    pids="$(ps -ef | grep 'emby' | grep -v grep | awk '{print $2}')"
+    kill -15 $pids
+
+    sleep 5
+
+    # Stuck
+    pids="$(ps -ef | grep emby | grep -v grep | awk '{print $2}')"
+
+    if [ "$pids" != "" ]; then
+      kill -9 $pids
+    sleep 2
+    fi
+    ;;
+  restart)
+    $0 stop
+    sleep 5
+    $0 start
+    ;;
+  status)
+    if [ $Running -gt 0 ]; then
+      echo "Emby Server is running."
+    else
+      echo "Emby Server is stopped."
+    fi
+    ;;
+  *)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+	;;
+esac
+
+exit 0
+
+EOF
+
+chmod 777 /etc/init.d/emby-server
+
+#замечено что ffmpeg от emby не видит часть библиотек, придёт поправить
+#preinstalled ffmpeg from emby didnt find some .so from dune, fix it
+
+apt install ffmpeg -y
+
+cp /usr/bin/ffmpeg /home/emby/opt/emby-server/bin/ffmpeg
+cp /usr/bin/ffprobe /home/emby/opt/emby-server/bin/ffprobe
+
+#аппаратное кодирование работать не будет
+#HW transcode doens't work
+
+#автозапуск после перезагрузки
+exit
+
+echo emby-server >> /opt/etc/chroot-services.list
