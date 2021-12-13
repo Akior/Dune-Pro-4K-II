@@ -64,7 +64,6 @@ for item in $(cat $CHROOT_SERVICES_LIST); do
 chroot $CHROOT_DIR /etc/init.d/$item stop
 sleep 2
 done
-umount /opt/debian/dev/pts
 mount | grep $CHROOT_DIR | awk '{print $3}' | xargs umount -l
 }
 restart() {
@@ -82,6 +81,7 @@ echo "Restarting chroot'ed Debian services..."
 for dir in dev proc sys; do
 mount -o bind /$dir $CHROOT_DIR/$dir
 done
+mount -o bind /dev/pts $CHROOT_DIR/dev/pts
 [ -z "$EXT_DIR" ] || mount -o bind $EXT_DIR $CHROOT_DIR/mnt
 for item in $(cat $CHROOT_SERVICES_LIST); do
 chroot $CHROOT_DIR /etc/init.d/$item start
@@ -89,18 +89,13 @@ done
 fi
 }
 enter() {
-[ -z "$EXT_DIR" ] || mount -o bind $EXT_DIR $CHROOT_DIR/mnt
-mount -o bind /dev/ /opt/debian/dev/
-mount -o bind /dev/pts/ /opt/debian/dev/pts/
-mount -o bind /proc/ /opt/debian/proc/
-mount -o bind /sys/ /opt/debian/sys/
+df | grep /opt/debian
+if [ $? -eq 0 ]
+then
 chroot /opt/debian /bin/bash
-}
-status() {
-if [ $MountedDirCount -gt 0 ]; then
-echo "Chroot'ed services running..."
 else
-echo "Chroot'ed services not running!"
+echo "Debian not started"
+exit 0
 fi
 }
 case "$1" in
