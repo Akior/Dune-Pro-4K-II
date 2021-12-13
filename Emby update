@@ -1,0 +1,104 @@
+debian enter
+apt update
+apt install jq
+
+#generate your API from emby
+APIKEY=""
+
+cat > /home/emby.sh << 'EOF'
+#!/usr/bin/env bash
+while [ true ]
+do
+sleep 3600
+url=$(curl --silent "https://api.github.com/repos/MediaBrowser/Emby.Releases/releases" | grep -m20 emby-server-deb*.*deb | grep -v md5 | grep -Eo -m2 "(http|https)://[a-zA-Z0-9./?=_%:-]*" | tail -n 1)
+new_version=$(echo $url | grep -ioe "_.*._" | tr -d "_")
+current_version=$(curl -X GET "http://127.0.0.1:8096/emby/System/Info?api_key=$APIKEY" -H "accept: application/json" --silent| jq-r ".Version")
+if [ -z current_version ]
+then
+current_version=$new_version
+fi
+echo $new_version
+echo $current_version
+echo $url
+#if [[ "$new_version" == "$current_version" ]]; then
+if [[ "$new_version" == *"$current_version"* ]]; then
+ echo "version actual"
+ else
+ /etc/init.d/emby-server stop
+ cd /home
+ wget $url
+ dpkg-deb --extract emby-server*.deb /home/emby
+ rm *.deb
+ /etc/init.d/emby-server start
+  echo "version not actual"
+fi
+done
+EOF
+
+chmod +x /home/emby.sh
+
+cat > /etc/init.d/emby-update << 'EOF'
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          emby-update
+# Required-Start:    $remote_fs $local_fs $all $syslog $networking
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Emby update
+# Description:       Emby for Linux,
+# Author:            Randomaizer
+# Version:           1.00
+### END INIT INFO
+EmbyUser="root"
+Running=$(ps -ef | grep '/bin/bash /home/emby.sh'| grep -v grep | wc -l)
+case "$1" in
+  start)
+    sleep 30
+   su -m "$EmbyUser" -s /bin/sh -c "exec /bin/bash /home/emby.sh &" >/dev/null 2>&1
+    ;;
+  stop)
+    if [ $Running -eq 0 ]; then
+      echo "Emby update is not running."
+      exit 0
+    fi
+    echo "Shutting down Emby update: "
+
+    # Ask nicely
+    pids="$(ps -ef | grep '/bin/bash /home/emby.sh' | grep -v grep | awk '{print $2}')"
+    kill -15 $pids
+
+    sleep 5
+
+    # Stuck
+    pids="$(ps -ef | grep '/bin/bash /home/emby.sh' | grep -v grep | awk '{print $2}')"
+
+    if [ "$pids" != "" ]; then
+      kill -9 $pids
+    sleep 2
+    fi
+    ;;
+  restart)
+    $0 stop
+    sleep 5
+    $0 start
+    ;;
+  status)
+    if [ $Running -gt 0 ]; then
+      echo "Emby update is running."
+    else
+      echo "Emby update is stopped."
+    fi
+    ;;
+  *)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+	;;
+esac
+
+exit 0
+EOF
+
+chmod +x /etc/init.d/emby-update
+
+/etc/init.d/emby-update start
