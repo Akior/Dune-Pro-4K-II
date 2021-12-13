@@ -19,3 +19,6 @@ ENGLISH
 3. Install one or both server with Emby server and Plex server manuals
 
 !!TODO (Autoupdate)
+
+Autoupdate Emby
+1. Emby update file (dont forget to add script name "Emby update" to chroot list )
