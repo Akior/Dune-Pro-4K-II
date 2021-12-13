@@ -35,7 +35,7 @@ fi
 done
 EOF
 
-chmod +x /home/emby.sh
+chmod 755 /home/emby.sh
 
 cat > /etc/init.d/emby-update << 'EOF'
 #!/bin/sh
@@ -99,6 +99,6 @@ esac
 exit 0
 EOF
 
-chmod +x /etc/init.d/emby-update
+chmod 755 /etc/init.d/emby-update
 
 /etc/init.d/emby-update start
