@@ -1,15 +1,20 @@
 debian enter
+
+#установим некоторые пакеты
+#we need json query
 apt update
 apt install jq
 
-#generate your API from emby
-APIKEY=""
+#generate your API from emby WEB page
+APIKEY="PUT-YOUR-KEY"
+#adjust git check perion (default 3600sec)
+TIME=3600
 
 cat > /home/emby.sh << 'EOF'
 #!/usr/bin/env bash
 while [ true ]
 do
-sleep 3600
+sleep $TIME
 url=$(curl --silent "https://api.github.com/repos/MediaBrowser/Emby.Releases/releases" | grep -m20 emby-server-deb*.*deb | grep -v md5 | grep -Eo -m2 "(http|https)://[a-zA-Z0-9./?=_%:-]*" | tail -n 1)
 new_version=$(echo $url | grep -ioe "_.*._" | tr -d "_")
 current_version=$(curl -X GET "http://127.0.0.1:8096/emby/System/Info?api_key=$APIKEY" -H "accept: application/json" --silent| jq-r ".Version")
