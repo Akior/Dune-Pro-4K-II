@@ -1,0 +1,87 @@
+#you need working debian
+
+debian enter
+
+#download and extract jackett
+cd /opt
+wget https://github.com/Jackett/Jackett/releases/download/v0.20.195/Jackett.Binaries.LinuxARM32.tar.gz
+tar -zxf Jackett.Binaries.LinuxARM32.tar.gz
+rm Jackett.Binaries.LinuxARM32.tar.gz
+chown -R 777 /opt/Jackett
+
+#add new user, give inet rights
+useradd jackett
+usermod -g android_inet jackett
+
+#start service
+cat > /etc/init.d/jackett < 'EOF'
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          jackett
+# Required-Start:    $remote_fs $local_fs $all $syslog $networking
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: jackett Server
+# Description:       jackett for Linux
+# Author:            Randomaizer
+# Version:           1.00
+### END INIT INFO
+user="jackett"
+
+Running=$(ps -ef | grep '/opt/Jackett/jackett'| grep -v grep | wc -l)
+
+case "$1" in
+  start)
+    sleep 3
+   su -m "$user" -s /bin/sh -c "exec /opt/Jackett/jackett &" >/dev/null 2>&1
+    sleep 15
+    ;;
+  stop)
+    if [ $Running -eq 0 ]; then
+      echo "Jackett  Server is not running."
+      exit 0
+    fi
+    echo "Shutting down Jackett Server: "
+
+    # Ask nicely
+    pids="$(ps -ef | grep '/opt/Jackett/jackett' | grep -v grep | awk '{print $2}')"
+    kill -15 $pids
+
+    sleep 5
+
+    # Stuck
+    pids="$(ps -ef | grep /opt/Jackett/jackett | grep -v grep | awk '{print $2}')"
+
+    if [ "$pids" != "" ]; then
+      kill -9 $pids
+    sleep 2
+    fi
+    ;;
+  restart)
+    $0 stop
+    sleep 5
+    $0 start
+    ;;
+  status)
+    if [ $Running -gt 0 ]; then
+      echo "Jackett Server is running."
+    else
+      echo "Jackett Server is stopped."
+    fi
+    ;;
+  *)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+	;;
+esac
+
+exit 0
+EOF
+
+chmod +x /etc/init.d/jackett 
+/etc/init.d/jackett start
+
+#autostart from entware
+exit
+echo "jackett" >> /opt/etc/chroot-services.list
