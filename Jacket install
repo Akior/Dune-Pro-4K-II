@@ -4,7 +4,7 @@ debian enter
 
 #download and extract jackett
 cd /opt
-wget https://github.com/Jackett/Jackett/releases/download/v0.20.195/Jackett.Binaries.LinuxARM32.tar.gz
+wget $(curl "https://api.github.com/repos/Jackett/Jackett/releases" --silent | grep https | grep -m1 LinuxARM32.tar.gz | grep -oP 'http.?://\S+' | tr -d "\"")
 tar -zxf Jackett.Binaries.LinuxARM32.tar.gz
 rm Jackett.Binaries.LinuxARM32.tar.gz
 chown -R 777 /opt/Jackett
