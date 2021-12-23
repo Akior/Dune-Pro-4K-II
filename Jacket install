@@ -14,7 +14,7 @@ useradd jackett
 usermod -g android_inet jackett
 
 #start service
-cat > /etc/init.d/jackett < 'EOF'
+cat > /etc/init.d/jackett << 'EOF'
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          jackett
