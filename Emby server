@@ -17,7 +17,7 @@ apt install curl wget -y
 #скачаем и установим emby в домашнюю директорию
 #download and install emby in home dir
 cd /home
-wget https://github.com/MediaBrowser/Emby.Releases/releases/download/4.7.0.18/emby-server-deb_4.7.0.19_armhf.deb
+wget https://github.com/MediaBrowser/Emby.Releases/releases/download/4.7.0.19/emby-server-deb_4.7.0.19_armhf.deb
 dpkg-deb --extract emby-server-deb_4.7.0.19_armhf.deb /home/emby
 
 #Эмби закостылен смотреть в /opt, так что поможем ему
