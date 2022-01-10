@@ -107,3 +107,8 @@ EOF
 chmod 755 /etc/init.d/emby-update
 
 /etc/init.d/emby-update start
+
+#автозапуск после перезагрузки
+exit
+
+echo emby-update >> /opt/etc/chroot-services.list
