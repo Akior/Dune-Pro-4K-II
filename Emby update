@@ -3,7 +3,6 @@ debian enter
 #установим некоторые пакеты
 #we need json query
 apt update
-apt install jq
 
 #generate your API from emby WEB page
 APIKEY="PUT-YOUR-KEY"
@@ -14,29 +13,30 @@ cat > /home/emby.sh << 'EOF'
 #!/usr/bin/env bash
 while [ true ]
 do
-sleep $TIME
-url=$(curl --silent "https://api.github.com/repos/MediaBrowser/Emby.Releases/releases" | grep -m20 emby-server-deb*.*deb | grep -v md5 | grep -Eo -m2 "(http|https)://[a-zA-Z0-9./?=_%:-]*" | tail -n 1)
-new_version=$(echo $url | grep -ioe "_.*._" | tr -d "_")
-current_version=$(curl -X GET "http://127.0.0.1:8096/emby/System/Info?api_key=$APIKEY" -H "accept: application/json" --silent| jq-r ".Version")
-if [ -z current_version ]
+sleep 30
+url=$(curl --silent "https://api.github.com/repos/MediaBrowser/Emby.Releases/releases" | grep armhf | grep -m20 emby-server-deb*.*deb | grep -v md5 | grep -Eo -m1 "(http|https)://[a-zA-Z0-9./?=_%:-]*" | tail -n 1)
+new_version=$(echo $url | grep -ioe "_.*._" | tr -d "_" | tr -d ".")
+current_version=$(curl -X GET "http://127.0.0.1:8096/emby/System/Info?api_key=127514dc89a84731a494dc915d71bc22" -H "accept: application/json" --silent | grep -ioe "Version.*," | grep -Eo '["\047].*["\047]' | grep -o '[[:digit:]]*' | tr -d "\n")
+if [ -z $current_version ]
 then
 current_version=$new_version
 fi
 echo $new_version
 echo $current_version
 echo $url
-#if [[ "$new_version" == "$current_version" ]]; then
-if [[ "$new_version" == *"$current_version"* ]]; then
- echo "version actual"
- else
+if [ $new_version -gt $current_version ]
+ then
  /etc/init.d/emby-server stop
  cd /home
- wget $url
- dpkg-deb --extract emby-server*.deb /home/emby
+ wget $url -O emby.deb
+ dpkg-deb --extract emby.deb /home/emby
  rm *.deb
  /etc/init.d/emby-server start
-  echo "version not actual"
+ echo "version not actual"
+ else
+ echo "version actual"
 fi
+sleep 3570
 done
 EOF
 
