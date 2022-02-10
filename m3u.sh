@@ -2,17 +2,17 @@
 KEY="XXXXX-XXX-XXX-XXX-XXXXX"
 if [ -z $1 ]
 then
-echo "usage m3u.sh /opt/rclone/Film ftp://admin:za920600ur@svyaznoy362.synology.me TEST"
+echo "usage m3u.sh /opt/rclone/Film ftp://synology.me TEST"
 exit 0
 fi
 if [ -z $2 ]
 then
-echo "usage m3u.sh /opt/rclone/Film ftp://admin:za920600ur@svyaznoy362.synology.me TEST"
+echo "usage m3u.sh /opt/rclone/Film ftp://synology.me TEST"
 exit 0
 fi
 if [ -z $3 ]
 then
-echo "usage m3u.sh /opt/rclone/Film ftp://admin:za920600ur@svyaznoy362.synology.me TEST"
+echo "usage m3u.sh /opt/rclone/Film ftp://synology.me TEST"
 exit 0
 fi
 pattern=$2
