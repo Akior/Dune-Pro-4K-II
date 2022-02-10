@@ -38,6 +38,7 @@ while IFS= read -r line; do
     post=$(echo $line | sed "s+$2+$1+g")
     poster_path=${post%.*}
     postter=$poster_path"-poster.jpg"
+    fake_poster=$(echo $pattern${name}/poster.jpg |  sed "s+$2+$1+g")
 
 #   get kp id from name search
     real_kp=$(echo $line | grep -oP 'kp-\K\w+')
